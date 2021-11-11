@@ -13,12 +13,16 @@ import java.time.LocalDateTime;
 public class HostResponse {
     private String name;
     private String address;
+    private LocalDateTime registrationTime;
+    private LocalDateTime modifiedTime;
     private LocalDateTime lastAliveTime;
     private AliveStatus aliveStatus;
 
     public HostResponse(Host host) {
         this.name = host.getName();
         this.address = host.getAddress();
+        this.registrationTime = host.getRegistrationTime();
+        this.modifiedTime = host.getModifiedTime();
         if(host.getModifiedTime() == null){
             this.lastAliveTime = host.getRegistrationTime();
         }else {
