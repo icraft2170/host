@@ -1,7 +1,14 @@
+## 설계
+- Client Ip , Host name 획득 혹은 Alive 여부 확인 관련된 내용은 ApiUtil에 static method로 구성
+- 예외처리 1 : 언체크드 예외인 `CustomException` 으로 예외 전환하였다.
+- 예외 처리 2 : `CustomHandlerExceptionResolver`를 만들어 예외에 따른 반환값 제어.
+- Domain(Host Entity)에 해당 내용과 관련된 비즈니스 로직을 넣어 Domain Driven Design 형태를 맞춤
+- 조회시 Page(Spring) or Result(Custom)으로 감싸서 API 스펙 변경이나 페이징처리에 대비
 
 
 
 ## 진행 방법
+- JPA , Spring Data JPA , Querydsl 
 - application.properties -> DataSource  
 - inteliJ 기준 Querydsl Build(QType 생성)
     1. 오른쪽 상단 Gradle 창
@@ -130,3 +137,4 @@ ALTER TABLE host
     "empty": false
     }    
   ```
+
