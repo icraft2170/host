@@ -2,7 +2,7 @@
 
 
 ## 진행 방법
-- 
+- application.properties -> DataSource  
 - inteliJ 기준 Querydsl Build(QType 생성)
     1. 오른쪽 상단 Gradle 창
     2. Tasks -> build -> clean
