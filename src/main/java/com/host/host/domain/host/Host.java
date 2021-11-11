@@ -1,8 +1,5 @@
 package com.host.host.domain.host;
 
-import com.host.host.api.request.CreateHostRequest;
-import com.host.host.api.request.ModifyHostRequest;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,32 +31,34 @@ public class Host {
     @Column(name = "modified_time")
     private LocalDateTime modifiedTime;
 
-    @Column(name = "lastAlive_time")
-    private LocalDateTime lastAliveTime;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private AliveStatus aliveStatus;
 
     public static Host createHost(String name, String address){
-        return new Host(null, name, address, LocalDateTime.now(), null, null, AliveStatus.DISCONNECT_STATUS);
+        return new Host(null, name, address, LocalDateTime.now(), null, AliveStatus.ALIVE_STATUS);
     }
 
-    private Host(Long id, String name, String address, LocalDateTime registrationTime, LocalDateTime modifiedTime, LocalDateTime lastAliveTime, AliveStatus aliveStatus) {
+    private Host(Long id, String name, String address, LocalDateTime registrationTime, LocalDateTime modifiedTime, AliveStatus aliveStatus) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.registrationTime = registrationTime;
         this.modifiedTime = modifiedTime;
-        this.lastAliveTime = lastAliveTime;
         this.aliveStatus = aliveStatus;
     }
 
-    public void updateByHostRequest(String name, String address) {
-        if(name != null)  this.name = name;
+    public void updateByHostRequest(String name,String address) {
+        if(name != null) this.name = name;
         if(address != null) this.address = address;
         this.modifiedTime = LocalDateTime.now();
     }
 
-
+    public void checkAliveStatus(boolean alive) {
+        if(alive){
+            this.aliveStatus = AliveStatus.ALIVE_STATUS;
+        }else{
+            this.aliveStatus = AliveStatus.DISCONNECT_STATUS;
+        }
+    }
 }

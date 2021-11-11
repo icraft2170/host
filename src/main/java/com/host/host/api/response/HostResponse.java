@@ -19,7 +19,11 @@ public class HostResponse {
     public HostResponse(Host host) {
         this.name = host.getName();
         this.address = host.getAddress();
-        this.lastAliveTime = host.getLastAliveTime();
+        if(host.getModifiedTime() == null){
+            this.lastAliveTime = host.getRegistrationTime();
+        }else {
+            this.lastAliveTime = host.getModifiedTime();
+        }
         this.aliveStatus = host.getAliveStatus();
     }
 }

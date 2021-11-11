@@ -1,13 +1,8 @@
 package com.host.host.api;
-import com.host.host.api.request.CreateHostRequest;
-import com.host.host.api.request.DeleteHostRequest;
-import com.host.host.api.request.GetHostRequest;
-import com.host.host.api.request.ModifyHostRequest;
 import com.host.host.api.response.HostResponse;
 import com.host.host.dto.Result;
 import com.host.host.exception.DuplicateHostException;
 import com.host.host.exception.HostException;
-import com.host.host.service.HostQueryService;
 import com.host.host.service.HostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,18 +11,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpUtils;
 
 import static com.host.host.consts.HostConst.MAX_HOST_COUNT;
+import static com.host.host.api.ApiUtil.*;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,74 +26,61 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/host")
 public class HostApiController {
     private final HostService hostService;
-    private final HostQueryService hostQueryService;
-
+    Map<String, Object> map = new ConcurrentHashMap();
 
     @PostMapping("/post")
-    public ResponseEntity<Map<String,Object>> createHost(
-//            @Validated @RequestBody CreateHostRequest createHostRequest
-              HttpServletRequest request){
-
-        String clientIp = ApiUtil.getClientIp(request);
-        String remoteHost = request.getRemoteHost();
+    public ResponseEntity<Map<String,Object>> createHost(HttpServletRequest request){
+        String clientIp = getClientIp(request);
+        String hostName = getHostname(clientIp);
 
         if(!hostService.isSizeGreaterThanMaxCount()){
             throw new HostException("호스트 제한수가 초과하였습니다.");
         }
-        if (hostService.isDuplicateHost(createHostRequest.getName(),clientIp)){
+        if (hostService.isDuplicateHost(hostName,clientIp)){
             throw new DuplicateHostException("중복된 호스트 등록 예외");
         }
 
-        hostService.joinHost(createHostRequest);
+        hostService.joinHost(clientIp, hostName);
 
 
-
-
-
-
-
-        Map<String, Object> map = new ConcurrentHashMap();
-//        map.put("msg");
-
-        return new ResponseEntity<Map<String,Object>>(HttpStatus.OK);
+        map.put("clientIp", clientIp);
+        map.put("hostName", hostName);
+        map.put("msg",hostName + "를 가입하였습니다.");
+        return new ResponseEntity<Map<String,Object>>(map,HttpStatus.OK);
     }
 
     @PatchMapping("/patch")
-    public String modifyHost(
-            @Validated @RequestBody ModifyHostRequest modifyHostRequest
-            , BindingResult bindingResult){
+    public ResponseEntity<Map<String,Object>> modifyHost(HttpServletRequest request){
+        String clientIp = getClientIp(request);
+        String hostName = getHostname(clientIp);
 
-        if(bindingResult.hasErrors()){
-            throw new HostException("잘못된 형식의 데이터입니다.");
-        }
-        if (hostService.isDuplicateHost(modifyHostRequest.getNewName(),modifyHostRequest.getNewAddress())){
-            throw new DuplicateHostException("중복된 호스트 수정 예외");
-        }
+        hostService.updateHost(clientIp,hostName);
 
-         String name = hostService.updateHost(modifyHostRequest);
-        return null;
+        map.put("clientIp", clientIp);
+        map.put("hostName", hostName);
+        map.put("msg",hostName + "를 수정하였습니다.");
+        return new ResponseEntity<Map<String,Object>>(map,HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")
-    public String deleteHost(
-            @Validated @RequestBody DeleteHostRequest deleteHostRequest
-            , BindingResult bindingResult){
+    public ResponseEntity<Map<String,Object>> deleteHost(HttpServletRequest request){
+        String clientIp = getClientIp(request);
+        String hostName = getHostname(clientIp);
 
-        if(bindingResult.hasErrors()){
-            throw new HostException("잘못된 형식의 데이터입니다.");
-        }
-        hostService.deleteHostByDeleteHostRequest(deleteHostRequest);
-        return null;
+        hostService.deleteHostByDeleteHostRequest(clientIp,hostName);
+
+        map.put("clientIp", clientIp);
+        map.put("hostName", hostName);
+        map.put("msg",hostName + "가 삭제하였습니다.");
+        return new ResponseEntity<Map<String,Object>>(map,HttpStatus.OK);
     }
 
     @GetMapping("/get")
-    public Result<HostResponse> getHost(@Validated @RequestBody GetHostRequest getHostRequest
-                ,BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            throw new HostException("잘못된 형식의 데이터입니다.");
-        }
+    public Result<HostResponse> host(HttpServletRequest request){
+        String clientIp = getClientIp(request);
+        String hostName = getHostname(clientIp);
 
-        HostResponse hostResponse= hostQueryService.findHost(getHostRequest);
+        HostResponse hostResponse= hostService.findHost(hostName);
         Result<HostResponse> hostResponseResult = new Result<>();
         hostResponseResult.setData(hostResponse);
 
@@ -111,32 +88,8 @@ public class HostApiController {
     }
 
     @GetMapping("/gets")
-    public Page<HostResponse> getHosts(@PageableDefault(size = MAX_HOST_COUNT) Pageable pageable){
-        return hostQueryService.findHosts(pageable);
+    public Page<HostResponse> hosts(@PageableDefault(size = MAX_HOST_COUNT) Pageable pageable){
+        return hostService.findHosts(pageable);
     }
-
-//
-//    private void isAlive(String address){
-//        InetAddress inetAddress = null;
-//        try {
-////            inetAddress = InetAddress.getB();
-//        }
-//        catch (UnknownHostException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            if (inetAddress.isReachable(2000))
-//            { //응답한 경우
-//
-//            }else
-//            {
-//                //응답이 안된 경우
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
-
 
 }

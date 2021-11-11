@@ -1,20 +1,24 @@
 package com.host.host.service;
 
 
-import com.host.host.api.request.CreateHostRequest;
-import com.host.host.api.request.DeleteHostRequest;
-import com.host.host.api.request.ModifyHostRequest;
+import com.host.host.api.response.HostResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface HostService {
 
     boolean isSizeGreaterThanMaxCount();
 
-    void joinHost(CreateHostRequest createHostRequest);
+    void joinHost(String address, String name);
 
-    String updateHost(ModifyHostRequest modifyHostRequest);
+    void updateHost(String address, String name);
 
-    void deleteHostByDeleteHostRequest(DeleteHostRequest deleteHostRequest);
+    void deleteHostByDeleteHostRequest(String address, String name);
 
     boolean isDuplicateHost(String name, String address);
+
+    HostResponse findHost(String hostName);
+
+    Page<HostResponse> findHosts(Pageable pageable);
 
 }
